@@ -1,0 +1,22 @@
+{
+  "name": "gmail-phone-tracker",
+  "version": "1.0.0",
+  "description": "A simple app to track Gmail addresses and phone numbers.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "contacts",
+    "gmail",
+    "phone",
+    "tracker",
+    "express"
+  ],
+  "author": "GitHub Copilot",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

@@ -1,0 +1,211 @@
+const contactForm = document.getElementById('contactForm');
+const contactIdInput = document.getElementById('contactId');
+const nameInput = document.getElementById('nameInput');
+const emailInput = document.getElementById('emailInput');
+const phoneInput = document.getElementById('phoneInput');
+const companyInput = document.getElementById('companyInput');
+const notesInput = document.getElementById('notesInput');
+const searchInput = document.getElementById('searchInput');
+const contactsTableBody = document.getElementById('contactsTableBody');
+const emptyState = document.getElementById('emptyState');
+const formTitle = document.getElementById('formTitle');
+const totalContacts = document.getElementById('totalContacts');
+const gmailCount = document.getElementById('gmailCount');
+const phoneCount = document.getElementById('phoneCount');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
+const newContactBtn = document.getElementById('newContactBtn');
+
+let contacts = [];
+let selectedContactId = null;
+
+function formatPhones(value) {
+  return value || '—';
+}
+
+function renderStats() {
+  totalContacts.textContent = String(contacts.length);
+  gmailCount.textContent = String(
+    contacts.filter((contact) => contact.email && contact.email.toLowerCase().includes('@gmail.com')).length
+  );
+  phoneCount.textContent = String(contacts.filter((contact) => contact.phone && contact.phone.trim()).length);
+}
+
+function resetForm() {
+  contactForm.reset();
+  contactIdInput.value = '';
+  selectedContactId = null;
+  formTitle.textContent = 'Add Contact';
+}
+
+function renderContacts() {
+  const query = searchInput.value.trim().toLowerCase();
+  const filteredContacts = contacts.filter((contact) => {
+    const haystack = [
+      contact.name,
+      contact.email,
+      contact.phone,
+      contact.company,
+      contact.notes
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    return haystack.includes(query);
+  });
+
+  if (filteredContacts.length === 0) {
+    emptyState.classList.remove('hidden');
+    contactsTableBody.innerHTML = '';
+  } else {
+    emptyState.classList.add('hidden');
+    contactsTableBody.innerHTML = filteredContacts
+      .map(
+        (contact) => `
+          <tr>
+            <td>
+              <strong>${escapeHtml(contact.name)}</strong>
+            </td>
+            <td>${escapeHtml(contact.email)}</td>
+            <td>${escapeHtml(formatPhones(contact.phone))}</td>
+            <td>${escapeHtml(contact.company || '—')}</td>
+            <td>
+              <div class="actions">
+                <button class="icon-btn" type="button" data-action="edit" data-id="${contact.id}">Edit</button>
+                <button class="icon-btn" type="button" data-action="delete" data-id="${contact.id}">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `
+      )
+      .join('');
+  }
+
+  renderStats();
+}
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+async function loadContacts() {
+  try {
+    const response = await fetch('/api/contacts');
+    if (!response.ok) {
+      throw new Error('Unable to fetch contacts');
+    }
+
+    contacts = await response.json();
+    renderContacts();
+  } catch (error) {
+    console.error(error);
+    emptyState.textContent = 'There was a problem loading contacts.';
+    emptyState.classList.remove('hidden');
+  }
+}
+
+async function handleSubmit(event) {
+  event.preventDefault();
+
+  const payload = {
+    name: nameInput.value,
+    email: emailInput.value,
+    phone: phoneInput.value,
+    company: companyInput.value,
+    notes: notesInput.value
+  };
+
+  try {
+    const url = selectedContactId ? `/api/contacts/${selectedContactId}` : '/api/contacts';
+    const method = selectedContactId ? 'PUT' : 'POST';
+
+    const response = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Unable to save contact');
+    }
+
+    resetForm();
+    await loadContacts();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function handleDelete(id) {
+  if (!window.confirm('Delete this contact?')) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/contacts/${id}`, { method: 'DELETE' });
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Unable to delete contact');
+    }
+
+    if (selectedContactId === id) {
+      resetForm();
+    }
+
+    await loadContacts();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function populateFormForEdit(contactId) {
+  const contact = contacts.find((item) => item.id === contactId);
+  if (!contact) {
+    return;
+  }
+
+  selectedContactId = contact.id;
+  contactIdInput.value = contact.id;
+  nameInput.value = contact.name;
+  emailInput.value = contact.email;
+  phoneInput.value = contact.phone;
+  companyInput.value = contact.company || '';
+  notesInput.value = contact.notes || '';
+  formTitle.textContent = 'Edit Contact';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+contactsTableBody.addEventListener('click', (event) => {
+  const button = event.target.closest('button');
+  if (!button) {
+    return;
+  }
+
+  const { action, id } = button.dataset;
+  if (action === 'edit') {
+    populateFormForEdit(id);
+  }
+
+  if (action === 'delete') {
+    handleDelete(id);
+  }
+});
+
+searchInput.addEventListener('input', renderContacts);
+contactForm.addEventListener('submit', handleSubmit);
+cancelEditBtn.addEventListener('click', resetForm);
+newContactBtn.addEventListener('click', () => {
+  resetForm();
+  nameInput.focus();
+});
+
+resetForm();
+loadContacts();

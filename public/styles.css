@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gmail Phone Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Contact management</p>
+          <h1>Gmail & Phone Tracker</h1>
+        </div>
+        <button id="newContactBtn" class="primary-btn" type="button">+ New Contact</button>
+      </header>
+
+      <section class="stats">
+        <div class="stat-card">
+          <span>Total</span>
+          <strong id="totalContacts">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>With Gmail</span>
+          <strong id="gmailCount">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>Saved Numbers</span>
+          <strong id="phoneCount">0</strong>
+        </div>
+      </section>
+
+      <section class="toolbar">
+        <label class="search-box">
+          <input id="searchInput" type="search" placeholder="Search by name, email, or phone" />
+        </label>
+      </section>
+
+      <main class="content-grid">
+        <section class="panel form-panel">
+          <h2 id="formTitle">Add Contact</h2>
+          <form id="contactForm">
+            <input id="contactId" type="hidden" />
+
+            <label>
+              Full name
+              <input id="nameInput" name="name" type="text" placeholder="Jane Doe" required />
+            </label>
+
+            <label>
+              Email address
+              <input id="emailInput" name="email" type="email" placeholder="jane@gmail.com" required />
+            </label>
+
+            <label>
+              Phone number
+              <input id="phoneInput" name="phone" type="tel" placeholder="+1 (415) 555-2241" required />
+            </label>
+
+            <label>
+              Company
+              <input id="companyInput" name="company" type="text" placeholder="Acme Studio" />
+            </label>
+
+            <label>
+              Notes
+              <textarea id="notesInput" name="notes" rows="4" placeholder="Follow-up reminder, meeting details, etc."></textarea>
+            </label>
+
+            <div class="form-actions">
+              <button class="primary-btn" type="submit">Save Contact</button>
+              <button id="cancelEditBtn" class="secondary-btn" type="button">Cancel</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel list-panel">
+          <div class="list-header">
+            <h2>Contacts</h2>
+          </div>
+
+          <div id="emptyState" class="empty-state hidden">
+            No contacts found. Add one to get started.
+          </div>
+
+          <div id="contactsTableWrap" class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Company</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="contactsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
